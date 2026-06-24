@@ -1,0 +1,24 @@
+{
+  "name": "node-manage-vet",
+  "version": "1.0.0",
+  "description": "Backend API for a veterinary management system",
+  "keywords": [
+    "Node"
+  ],
+  "license": "ISC",
+  "author": "Juan Manuel Martínez García",
+  "type": "module",
+  "main": "app.js",
+  "scripts": {
+    "dev": "nodemon app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "mongoose": "^9.7.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
+}
