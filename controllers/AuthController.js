@@ -1,4 +1,5 @@
 import User from "../models/User.js";
+import crypto from "crypto";
 
 const login = (req, res) => {
     
@@ -9,18 +10,30 @@ const login = (req, res) => {
 
 const register = async (req, res) => {
 
-    /* const { name, password, email, phone, web, token, confirmed } = req.body;*/
+    const { email } = req.body;
+    const exist = await User.findOne({ email });
+
+    if (exist) {
+        return res.status(409).json({
+            error: 'El correo electrónico ya se encuentra registrado'
+        });
+    }
 
     try {
         const user = new User(req.body);
-        const response = await user.save();
+        await user.save();
 
-        res.json(response);
-        // res.json('Register...');
+        return res.status(201).json({
+            message: 'Usuario registrado correctamente. Revisa tu correo para confirmar tu cuenta.'
+        });
 
     } catch (error) {
         console.log(error);
     }
+
+}
+
+const confirm = (req, res) => {
 
 }
 

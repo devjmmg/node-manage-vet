@@ -1,4 +1,5 @@
 import mongoose, { Schema, model } from "mongoose";
+import { randomBytes } from "crypto";
 
 const UserSchema = new Schema({
     name: {
@@ -27,6 +28,7 @@ const UserSchema = new Schema({
     },
     token: {
         type: String,
+        default: () => randomBytes(32).toString('base64url')
     },
     confirmed: {
         type: Boolean,
