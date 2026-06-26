@@ -8,5 +8,6 @@ router.get('/users', UserController.index);
 
 router.post('/login', AuthController.login);
 router.post('/register', AuthController.register);
+router.get('/confirm/:token', AuthController.confirm);
 
 export default router;
