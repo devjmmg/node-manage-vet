@@ -1,11 +1,30 @@
 import User from "../models/User.js";
 import crypto from "crypto";
+import { createJWT } from "../utils/index.js";
 
-const login = (req, res) => {
+const login = async (req, res) => {
     
     const { email, password } = req.body;
-    
-    res.json('Login...');
+    const user = await User.findOne({ email });
+    if (!user) {
+        return res.status(401).json({
+            error: 'El correo electrónico o la contraseña es incorrecta'
+        });
+    }
+    const isValidPassword = await user.checkPassword(password);
+    if (!isValidPassword) {
+        return res.status(401).json({
+            error: 'El correo electrónico o la contraseña es incorrecta'
+        });
+    }
+    if (!user.confirmed) {
+        return res.status(403).json({
+            error: 'Debes confirmar tu correo electrónico antes de iniciar sesión'
+        });
+    }
+    return res.status(200).json({
+        token: createJWT(user.id)
+    });
 }
 
 const register = async (req, res) => {
