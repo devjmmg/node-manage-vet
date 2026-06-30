@@ -1,5 +1,5 @@
 import User from "../models/User.js";
-import crypto from "crypto";
+import { randomBytes } from "crypto";
 import { createJWT } from "../utils/index.js";
 
 const login = async (req, res) => {
@@ -78,9 +78,68 @@ const profile = (req, res) => {
     res.json({user});
 }
 
+const forgotPassword = async (req, res) => {
+    const { email } = req.body;
+    const user = await User.findOne({email});
+    try {
+        if ( user ) {
+            user.token = randomBytes(32).toString('base64url');
+            await user.save();
+        }
+        return res.status(200).json({
+            message: "Recibirás un enlace a tu correo electrónico para restablecer tu contraseña."
+        });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({
+            error: "Error interno del servidor"
+        }); 
+    }
+}
+
+const validateToken = async (req, res) => {
+    const { token } = req.params;
+    const user = await User.findOne({ token });
+    if (user) {
+        return res.status(200).json({
+            message: "Token válido"
+        });
+    }
+    return res.status(404).json({
+        message: "Token no válido"
+    });
+}
+
+const resetPassword = async (req, res) => {
+    const { token } = req.params;
+    const { password } = req.body;
+
+    const user = await User.findOne({ token });
+    if ( !user) {
+        return res.status(401).json({
+            error: "Token no valido"
+        });
+    }
+
+    try {
+        user.token = null;
+        user.password = password;
+        await user.save();
+        return res.status(200).json({
+            message: "Contraseña actualizada correctamente"
+        })
+    } catch (error) {
+        console.log(error);
+    }
+
+}
+
 export {
     login,
     register,
     confirm,
-    profile
+    profile,
+    forgotPassword,
+    validateToken,
+    resetPassword
 }
