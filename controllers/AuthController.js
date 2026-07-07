@@ -1,6 +1,7 @@
 import User from "../models/User.js";
 import { randomBytes } from "crypto";
 import { createJWT } from "../utils/index.js";
+import { sendConfirmationEmail } from "../utils/email.js";
 
 const login = async (req, res) => {
     
@@ -29,21 +30,45 @@ const login = async (req, res) => {
 
 const register = async (req, res) => {
     
-    const { email } = req.body;
-    const exist = await User.findOne({ email });
+    const { email, password, token } = req.body;
+    const user = await User.findOne({ email });
     
-    if (exist) {
-        return res.status(409).json({
-            error: 'El correo electrónico ya se encuentra registrado'
+    if (user) {
+
+        console.log(user);
+
+        if (user.confirmed) {
+            return res.status(409).json({
+                email: 'El correo electrónico ya se encuentra registrado.'
+            });
+        }
+
+        user.name = req.body.name;
+        user.password = req.body.password;
+        user.token = randomBytes(32).toString('hex');
+        await user.save();
+
+        console.log(user);
+
+        await sendConfirmationEmail(user);
+
+        return res.status(200).json({
+            success: 'La cuenta aún no ha sido confirmada. Te hemos enviado un nuevo correo de confirmación.'
         });
     }
     
     try {
         const user = new User(req.body);
         await user.save();
+
+        await sendConfirmationEmail({
+            name: user.name,
+            email: user.email,
+            token: user.token
+        });
         
         return res.status(201).json({
-            message: 'Usuario registrado correctamente. Revisa tu correo para confirmar tu cuenta.'
+            success: 'Usuario registrado correctamente. Revisa tu correo electrónico para confirmar tu cuenta.'
         });
         
     } catch (error) {
@@ -53,11 +78,11 @@ const register = async (req, res) => {
 }
 
 const confirm = async (req, res) => {
-    const token = req.params.token;
+    const { token } = req.params;
     const user = await User.findOne({ token });
     if (!user) {
         return res.status(404).json({
-            error: 'Token no valido'
+            error: 'Token no valido.'
         });
     }
     try {
@@ -66,7 +91,7 @@ const confirm = async (req, res) => {
         await user.save();
         
         return res.json({
-            message: 'Cuenta confirmada correctamente'
+            message: 'Cuenta confirmada correctamente.'
         });
     } catch (error) {
         console.log(error);
