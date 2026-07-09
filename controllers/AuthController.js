@@ -1,7 +1,7 @@
 import User from "../models/User.js";
 import { randomBytes } from "crypto";
 import { createJWT } from "../utils/index.js";
-import { sendConfirmationEmail } from "../utils/email.js";
+import { sendConfirmationEmail, sendResetPasswordEmail } from "../utils/email.js";
 
 const login = async (req, res) => {
     
@@ -35,8 +35,6 @@ const register = async (req, res) => {
     
     if (user) {
 
-        console.log(user);
-
         if (user.confirmed) {
             return res.status(409).json({
                 email: 'El correo electrónico ya se encuentra registrado.'
@@ -48,9 +46,11 @@ const register = async (req, res) => {
         user.token = randomBytes(32).toString('hex');
         await user.save();
 
-        console.log(user);
-
-        await sendConfirmationEmail(user);
+        await sendConfirmationEmail({
+            name: user.name,
+            email: user.email,
+            token: user.token
+        });
 
         return res.status(200).json({
             success: 'La cuenta aún no ha sido confirmada. Te hemos enviado un nuevo correo de confirmación.'
@@ -72,7 +72,9 @@ const register = async (req, res) => {
         });
         
     } catch (error) {
-        console.log(error);
+        return res.status(500).json({
+            error: "Error interno del servidor"
+        });
     }
     
 }
@@ -94,7 +96,9 @@ const confirm = async (req, res) => {
             message: 'Cuenta confirmada correctamente.'
         });
     } catch (error) {
-        console.log(error);
+        return res.status(500).json({
+            error: "Error interno del servidor"
+        });
     }
 }
 
@@ -110,12 +114,16 @@ const forgotPassword = async (req, res) => {
         if ( user ) {
             user.token = randomBytes(32).toString('base64url');
             await user.save();
+            await sendResetPasswordEmail({
+                name: user.name,
+                email: user.email,
+                token: user.token
+            });
         }
         return res.status(200).json({
-            message: "Recibirás un enlace a tu correo electrónico para restablecer tu contraseña."
+            success: "Recibirás un enlace a tu correo electrónico para restablecer tu contraseña."
         });
     } catch (error) {
-        console.log(error);
         return res.status(500).json({
             error: "Error interno del servidor"
         }); 
@@ -126,23 +134,27 @@ const validateToken = async (req, res) => {
     const { token } = req.params;
     const user = await User.findOne({ token });
     if (user) {
-        return res.status(200).json({
-            message: "Token válido"
-        });
+        return res.status(200).end();
     }
     return res.status(404).json({
-        message: "Token no válido"
+        error: "Hubo algún error con el enlace"
     });
 }
 
 const resetPassword = async (req, res) => {
     const { token } = req.params;
-    const { password } = req.body;
+    const { password, confirmPassword } = req.body;
+
+    if (password !== confirmPassword) {
+        return res.status(400).json({
+            confirmPassword: "Las contraseñas no coinciden"
+        });
+    }
 
     const user = await User.findOne({ token });
     if ( !user) {
         return res.status(401).json({
-            error: "Token no valido"
+            error: "Hubo algún error con el enlace"
         });
     }
 
@@ -151,10 +163,12 @@ const resetPassword = async (req, res) => {
         user.password = password;
         await user.save();
         return res.status(200).json({
-            message: "Contraseña actualizada correctamente"
-        })
+            message: 'La contraseña se actualizo correctamente'
+        });
     } catch (error) {
-        console.log(error);
+        return res.status(500).json({
+            error: "Error interno del servidor"
+        });
     }
 
 }
