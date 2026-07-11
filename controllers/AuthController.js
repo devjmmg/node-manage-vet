@@ -102,11 +102,6 @@ const confirm = async (req, res) => {
     }
 }
 
-const profile = (req, res) => {
-    const { user } = req;
-    res.json({user});
-}
-
 const forgotPassword = async (req, res) => {
     const { email } = req.body;
     const user = await User.findOne({email});
@@ -171,6 +166,11 @@ const resetPassword = async (req, res) => {
         });
     }
 
+}
+
+const profile = (req, res) => {
+    const { user } = req;
+    res.json(user);
 }
 
 export {
