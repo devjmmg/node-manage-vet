@@ -1,6 +1,6 @@
 import User from "../models/User.js";
 import { randomBytes } from "crypto";
-import { createJWT } from "../utils/index.js";
+import { createJWT } from "../utils/jwt.js";
 import { sendConfirmationEmail, sendResetPasswordEmail } from "../utils/email.js";
 
 const login = async (req, res) => {
