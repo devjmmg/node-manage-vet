@@ -15,7 +15,7 @@ const PetSchema = new Schema({
         type: String,
         trim: true
     },
-    up_date: {
+    registrationDate: {
         type: Date,
         required: true,
         trim: true
