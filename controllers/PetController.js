@@ -5,7 +5,14 @@ const index = async (req, res) => {
         const { user: { id: user_id } } = req;
         const pets = await Pet.find({ user_id });
         return res.status(200).json({
-            pets
+            pets: pets.map(pet => ({
+                _id: pet._id,
+                name: pet.name,
+                owner: pet.owner,
+                email: pet.email,
+                registrationDate: pet.registrationDate,
+                symptoms: pet.symptoms
+            }))
         });
     } catch (error) {
         return res.status(500).json({
@@ -21,8 +28,15 @@ const store = async (req, res) => {
         pet.user_id = id;
         await pet.save();
         return res.status(201).json({
-            message: "Mascota registrada correctamente",
-            pet
+            success: "Mascota registrada correctamente.",
+            pet: {
+                _id: pet._id,
+                name: pet.name,
+                owner: pet.owner,
+                email: pet.email,
+                registrationDate: pet.registrationDate,
+                symptoms: pet.symptoms
+            }
         });
     } catch (error) {
         return res.status(500).json({
