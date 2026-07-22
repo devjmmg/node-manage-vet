@@ -168,16 +168,10 @@ const resetPassword = async (req, res) => {
 
 }
 
-const profile = (req, res) => {
-    const { user } = req;
-    res.json(user);
-}
-
 export {
     login,
     register,
     confirm,
-    profile,
     forgotPassword,
     validateToken,
     resetPassword
