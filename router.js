@@ -16,6 +16,7 @@ router.post('/reset-password/:token', AuthController.resetPassword);
 
 router.get('/profile', auth, UserController.profile);
 router.put('/profile', auth, UserController.update);
+router.put('/profile/password', auth, UserController.password);
 
 router.get('/pets', auth, PetController.index);
 router.post('/pets', auth, PetController.store);

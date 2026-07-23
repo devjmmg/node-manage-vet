@@ -40,7 +40,34 @@ const update = async (req, res) => {
     }
 };
 
+const password = async (req, res) => {
+
+    const user = await User.findById(req.user._id);
+    const { currentPassword, password } = req.body;
+
+    if (!user) {
+        return res.status(404).json({
+            error: 'Usuario no encontrado.'
+        });
+    }
+
+    if (!(await user.checkPassword(currentPassword))) {
+        return res.status(400).json({
+            currentPassword: 'La contraseña actual es incorrecta.'
+        });
+    }
+
+    user.password = password;
+    await user.save();
+
+    res.json({
+        success: 'La contraseña se actualizó correctamente.'
+    });
+}
+
+
 export {
     profile,
-    update
+    update,
+    password
 }
